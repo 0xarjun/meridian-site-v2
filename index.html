@@ -131,7 +131,7 @@
     }
     @keyframes gridShift { 0% { transform: translate(0, 0); } 100% { transform: translate(80px, 80px); } }
 
-    .hero-content { position: relative; z-index: 1; }
+    .hero-content { position: relative; z-index: 1; padding: 0 14px; }
     .hero-title-cont { margin-bottom: 48px; }
     .hero-title {
       max-width: 34ch; margin: 14px 14px 18px; font-weight: 400;
@@ -452,8 +452,10 @@
     }
     @media (max-width: 768px) {
       .hero-title { font-size: 28px; margin: 10px 10px 14px; }
-      .hero { padding: 0 10px 40px; }
-      .hero-cta { margin: 10px; }
+      .hero { padding: 0 10px 40px; text-align: center; }
+      .hero-title { text-align: center; }
+      .hero-cta { margin: 10px auto; }
+      .hero-divider { text-align: center; }
       .mission-text { grid-column: 1 / 13; font-size: 20px; }
       .dont-tokenize { grid-column: 1 / 13; }
       .image-section .mission-text { font-size: 20px; }

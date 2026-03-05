@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meridian — Tokenization Infrastructure for Productive Assets</title>
+  <meta name="description" content="Tokenization infrastructure for productive assets. Metals, energy, compute, sovereign minerals.">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <style>
+    /* ============================================
+       FONTS — Unica 77
+       ============================================ */
+    @font-face { font-family: 'Unica77'; src: url('fonts/0996a2a352994ed0-s.p.woff2') format('woff2'); font-weight: 100; font-style: normal; font-display: swap; }
+    @font-face { font-family: 'Unica77'; src: url('fonts/d5dada0ac482209b-s.p.woff2') format('woff2'); font-weight: 200; font-style: normal; font-display: swap; }
+    @font-face { font-family: 'Unica77'; src: url('fonts/47bad734875a3c19-s.p.woff2') format('woff2'); font-weight: 300; font-style: normal; font-display: swap; }
+    @font-face { font-family: 'Unica77'; src: url('fonts/66250c15a2a1c344-s.p.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
+    @font-face { font-family: 'Unica77'; src: url('fonts/e1d74c7d0918b0fb-s.p.woff2') format('woff2'); font-weight: 500; font-style: normal; font-display: swap; }
+    @font-face { font-family: 'Unica77'; src: url('fonts/de2ef234a4f8c130-s.p.woff2') format('woff2'); font-weight: 600; font-style: normal; font-display: swap; }
+    @font-face { font-family: 'Unica77'; src: url('fonts/9a5efdc67b5dbec6-s.p.woff2') format('woff2'); font-weight: 700; font-style: normal; font-display: swap; }
+    @font-face { font-family: 'Unica77'; src: url('fonts/8b2ebf7941874321-s.p.woff2') format('woff2'); font-weight: 800; font-style: normal; font-display: swap; }
+
+    /* ============================================
+       CSS VARIABLES
+       ============================================ */
+    :root {
+      --color-bg: #eff4ff;
+      --color-bg-alt: #e2ebff;
+      --color-accent: #1a1a2e;
+      --color-accent-light: rgba(26, 26, 46, 0.15);
+      --color-text: #151515;
+      --color-text-secondary: rgba(26, 26, 46, 0.6);
+      --color-white: #eff4ff;
+      --color-border: rgba(26, 26, 46, 0.12);
+      --z-header: 10;
+    }
+
+    /* ============================================
+       RESET & BASE
+       ============================================ */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { font-size: 16px; scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+    body {
+      font-family: 'Unica77', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background-color: var(--color-bg);
+      color: var(--color-text);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      font-feature-settings: "calt" 1, "rlig" 1, "kern" 1, "liga" 1;
+      overflow-x: hidden;
+    }
+    ::selection { background: var(--color-accent-light); }
+    a { color: inherit; text-decoration: none; }
+    ul, ol { list-style: none; }
+    img, svg { display: block; max-width: 100%; }
+
+    /* ============================================
+       LOADER
+       ============================================ */
+    .loader {
+      z-index: 100; opacity: 1; position: fixed; top: 0; left: 0;
+      width: 100%; height: 100%; background-color: var(--color-bg);
+      pointer-events: all; transition: opacity 0.4s ease-in-out;
+    }
+    .loader.loaded { pointer-events: none; opacity: 0; }
+
+    /* ============================================
+       NAVIGATION (Hypersphere-style)
+       ============================================ */
+    .header-cont {
+      z-index: var(--z-header); top: 18px; left: 20px; right: 20px;
+      position: fixed; display: flex; justify-content: space-between;
+      max-width: calc(100vw - 40px);
+    }
+    nav.navigation {
+      width: 100%; line-height: 90%; text-transform: capitalize;
+      display: flex; mix-blend-mode: difference; gap: 0.5rem;
+      font-size: 14px; opacity: 0; transform: translateY(-30%);
+      animation: navSlideIn 0.6s ease forwards; animation-delay: 0.8s;
+    }
+    @keyframes navSlideIn { to { opacity: 1; transform: translateY(0); } }
+
+    .logo-holder a { display: flex; align-items: center; gap: 0; }
+    .logo-box {
+      height: 48px; width: 48px; display: flex; align-items: center;
+      justify-content: center; background: var(--color-white);
+      border-radius: 4px; overflow: hidden;
+    }
+    .logo-box svg { width: 36px; height: 36px; }
+
+    .nav-list {
+      display: flex; padding: 3px; border-radius: 4px;
+      background: var(--color-white); position: relative;
+    }
+    .nav-list li {
+      position: relative; z-index: 10; margin-right: 0; border-radius: 4px;
+      color: #000; transition: color 0.3s ease-in-out, background 0.3s ease-in-out;
+    }
+    .nav-list li:hover { color: var(--color-white); background: rgba(0,0,0,0.2); transition: unset; }
+    .nav-list li a {
+      height: 42px; padding: 0 28px; border-radius: 4px;
+      display: flex; align-items: center; justify-content: center; white-space: nowrap;
+    }
+
+    /* ============================================
+       HERO SECTION
+       ============================================ */
+    .hero {
+      position: relative; height: 100vh; width: 100%;
+      display: flex; flex-direction: column; justify-content: flex-end;
+      padding: 0 20px 48px; color: var(--color-white); overflow: hidden;
+    }
+    .hero-bg {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      z-index: 0; background-color: var(--color-accent);
+    }
+    .hero-bg::before {
+      content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 80px 80px;
+      animation: gridShift 30s linear infinite;
+    }
+    .hero-bg::after {
+      content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      background: radial-gradient(ellipse at 70% 40%, rgba(30, 60, 120, 0.3) 0%, transparent 60%),
+                  radial-gradient(ellipse at 20% 80%, rgba(10, 22, 40, 0.8) 0%, transparent 50%);
+    }
+    @keyframes gridShift { 0% { transform: translate(0, 0); } 100% { transform: translate(80px, 80px); } }
+
+    .hero-content { position: relative; z-index: 1; }
+    .hero-title-cont { margin-bottom: 48px; }
+    .hero-title {
+      max-width: 34ch; margin: 14px 14px 18px; font-weight: 400;
+      line-height: 100%; letter-spacing: -1.6px; font-size: 34px;
+    }
+    @media screen and (min-width: 768px) { .hero-title { font-size: calc(2.7083vw + 13.2px); } }
+    @media screen and (min-width: 1728px) { .hero-title { font-size: 60px; } }
+
+    .hero-cta {
+      display: block; font-weight: 400; font-size: 1rem; width: fit-content;
+      white-space: nowrap; padding: 8px 20px; margin: 20px;
+      border: 1px solid var(--color-white); border-radius: 2.5rem;
+      color: var(--color-white); transition: background 0.3s ease, color 0.3s ease;
+    }
+    .hero-cta:hover { background: var(--color-white); color: var(--color-accent); }
+
+    .hero-divider { margin-bottom: 1rem; padding: 0 14px; }
+    .hero-divider .line {
+      width: 100%; height: 1px; background-color: var(--color-white);
+      margin-bottom: 0.5rem; transform-origin: left; transform: scaleX(0);
+      animation: lineGrow 1s ease forwards; animation-delay: 1s;
+    }
+    .hero-divider span {
+      font-size: 1rem; font-weight: 400; color: var(--color-white);
+      opacity: 0; animation: fadeIn 0.6s ease forwards; animation-delay: 1.4s;
+    }
+    @keyframes lineGrow { to { transform: scaleX(1); } }
+    @keyframes fadeIn { to { opacity: 1; } }
+
+    .hero-title .word { display: inline-block; overflow: hidden; }
+    .hero-title .word-inner { display: inline-block; transform: translateY(110%); animation: wordSlideUp 0.7s ease forwards; }
+    .hero-title .word-inner.d1 { animation-delay: 1.0s; }
+    .hero-title .word-inner.d2 { animation-delay: 1.1s; }
+    .hero-title .word-inner.d3 { animation-delay: 1.15s; }
+    .hero-title .word-inner.d4 { animation-delay: 1.2s; }
+    .hero-title .word-inner.d5 { animation-delay: 1.25s; }
+    .hero-title .word-inner.d6 { animation-delay: 1.3s; }
+    .hero-title .word-inner.d7 { animation-delay: 1.35s; }
+    @keyframes wordSlideUp { to { transform: translateY(0); } }
+
+    /* ============================================
+       MISSION / THESIS SECTIONS (light bg)
+       ============================================ */
+    .mission-section { padding: 120px 20px; background-color: var(--color-bg); }
+    .mission-grid {
+      display: grid; grid-template-columns: repeat(12, 1fr);
+      grid-gap: 20px; max-width: 1728px; margin: 0 auto;
+    }
+    .mission-divider { grid-column: 1 / 13; margin-bottom: 1rem; }
+    .mission-divider .line {
+      width: 100%; height: 1px; background-color: var(--color-accent);
+      margin-bottom: 0.5rem; transform-origin: left; transform: scaleX(0);
+      transition: transform 1s ease;
+    }
+    .mission-divider.visible .line { transform: scaleX(1); }
+    .mission-divider span { font-size: 1rem; font-weight: 400; text-transform: capitalize; }
+
+    .mission-text {
+      grid-column: 1 / 10; font-size: 20px; font-weight: 300;
+      line-height: 140%; letter-spacing: -0.4px; color: var(--color-text);
+    }
+    @media screen and (min-width: 768px) { .mission-text { font-size: calc(1.6667vw + 7.2px); } }
+    @media screen and (min-width: 1728px) { .mission-text { font-size: 36px; } }
+
+    .mission-text p { margin-bottom: 24px; }
+    .mission-text p:last-child { margin-bottom: 0; }
+    .mission-text strong { font-weight: 500; }
+
+    .mission-cta {
+      display: inline-block; font-weight: 400; font-size: 1rem; width: fit-content;
+      white-space: nowrap; padding: 8px 20px; margin-top: 20px;
+      border: 1px solid var(--color-accent); border-radius: 2.5rem;
+      color: var(--color-accent); transition: background 0.3s ease, color 0.3s ease;
+    }
+    .mission-cta:hover { background: var(--color-accent); color: var(--color-white); }
+
+    /* ============================================
+       FULL-BLEED DARK SECTIONS
+       ============================================ */
+    .image-section {
+      position: relative; min-height: 80vh; width: 100%;
+      display: flex; align-items: center; color: var(--color-white);
+      padding: 100px 20px; overflow: hidden;
+    }
+    .image-section-bg {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      z-index: 0; background-color: var(--color-accent);
+      background-image:
+        linear-gradient(135deg, rgba(255,255,255,0.02) 25%, transparent 25%),
+        linear-gradient(225deg, rgba(255,255,255,0.02) 25%, transparent 25%),
+        linear-gradient(315deg, rgba(255,255,255,0.02) 25%, transparent 25%),
+        linear-gradient(45deg, rgba(255,255,255,0.02) 25%, transparent 25%);
+      background-size: 60px 60px;
+    }
+    .image-section-bg::after {
+      content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      background: linear-gradient(180deg, rgba(26, 26, 46, 0.3) 0%, rgba(26, 26, 46, 0.9) 100%);
+    }
+    .image-section-content { position: relative; z-index: 1; width: 100%; }
+    .image-section .mission-divider .line { background-color: var(--color-white); }
+    .image-section .mission-divider span { color: var(--color-white); }
+    .image-section .mission-text {
+      color: var(--color-white); max-width: 52ch;
+      font-size: 20px; font-weight: 300; line-height: 140%;
+    }
+    @media screen and (min-width: 768px) { .image-section .mission-text { font-size: calc(1.6667vw + 7.2px); } }
+    @media screen and (min-width: 1728px) { .image-section .mission-text { font-size: 36px; } }
+    .image-section .mission-cta { border-color: var(--color-white); color: var(--color-white); }
+    .image-section .mission-cta:hover { background: var(--color-white); color: var(--color-accent); }
+
+    .dont-tokenize {
+      grid-column: 1 / 10; margin-top: 40px;
+      font-size: 15px; font-weight: 300; color: rgba(255,255,255,0.45);
+      line-height: 1.7; border-left: 2px solid rgba(255,255,255,0.15); padding-left: 20px;
+    }
+    .dont-tokenize strong { font-weight: 500; color: rgba(255,255,255,0.6); }
+
+    /* ============================================
+       PRODUCTS GRID (2x2)
+       ============================================ */
+    .products-section { padding: 120px 20px 80px; background-color: var(--color-bg); }
+    .products-header { max-width: 1728px; margin: 0 auto 80px; }
+    .products-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr);
+      gap: 1px; background: var(--color-border);
+      max-width: 1728px; margin: 0 auto;
+    }
+    .product-card {
+      background: var(--color-bg); padding: 48px 40px;
+      opacity: 0; transform: translateY(30px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .product-card.visible { opacity: 1; transform: none; }
+    .product-status {
+      font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.1em;
+      text-transform: uppercase; margin-bottom: 16px;
+      color: var(--color-text-secondary);
+    }
+    .product-status.live { color: #2d6a4f; }
+    .product-card h3 { font-size: 1.125rem; font-weight: 500; margin-bottom: 16px; color: var(--color-text); }
+    .product-card p {
+      font-size: 15px; font-weight: 300; color: var(--color-text-secondary);
+      line-height: 1.7; letter-spacing: -0.3px;
+    }
+
+    /* ============================================
+       CAPABILITIES GRID (3-col)
+       ============================================ */
+    .capabilities-section { padding: 120px 20px 80px; background-color: var(--color-bg); }
+    .capabilities-header { max-width: 1728px; margin: 0 auto 80px; }
+    .capabilities-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 1px; background: var(--color-border);
+      max-width: 1728px; margin: 0 auto;
+    }
+    .capability-card {
+      background: var(--color-bg); padding: 48px 40px;
+      opacity: 0; transform: translateY(30px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .capability-card.visible { opacity: 1; transform: none; }
+    .capability-num {
+      font-size: 0.6875rem; font-weight: 400; color: var(--color-text-secondary);
+      margin-bottom: 32px; letter-spacing: 0.02em;
+    }
+    .capability-card h3 { font-size: 1.125rem; font-weight: 500; margin-bottom: 16px; color: var(--color-text); }
+    .capability-card p {
+      font-size: 15px; font-weight: 300; color: var(--color-text-secondary);
+      line-height: 1.7; letter-spacing: -0.3px;
+    }
+
+    /* ============================================
+       FLOW DIAGRAM
+       ============================================ */
+    .flow-section { padding: 0 20px 120px; background-color: var(--color-bg); }
+    .flow-box {
+      max-width: 1728px; margin: 0 auto; padding: 64px;
+      background: rgba(26, 26, 46, 0.02); border: 1px solid var(--color-border); border-radius: 4px;
+    }
+    .flow-row {
+      display: flex; align-items: center; justify-content: center;
+      gap: 24px; margin-bottom: 32px;
+    }
+    .flow-row:last-child { margin-bottom: 0; }
+    .flow-node {
+      padding: 20px 32px; background: rgba(26, 26, 46, 0.03);
+      border: 1px solid var(--color-border); border-radius: 2px;
+      font-size: 0.875rem; font-weight: 400; text-align: center; min-width: 140px;
+    }
+    .flow-node.primary { background: var(--color-accent); color: var(--color-white); border-color: var(--color-accent); }
+    .flow-node small { display: block; font-size: 0.75rem; font-weight: 300; opacity: 0.6; margin-top: 4px; }
+    .flow-arrow { color: var(--color-text-secondary); font-size: 1.5rem; }
+    .flow-line { width: 100%; height: 1px; background: var(--color-border); margin: 24px 0; }
+
+    /* ============================================
+       ARCHITECTURE GRID (2x2)
+       ============================================ */
+    .arch-section { padding: 0 20px 120px; background-color: var(--color-bg); }
+    .arch-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr);
+      gap: 1px; background: var(--color-border);
+      max-width: 1728px; margin: 0 auto;
+    }
+    .arch-card {
+      background: var(--color-bg); padding: 40px;
+      opacity: 0; transform: translateY(20px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .arch-card.visible { opacity: 1; transform: none; }
+    .arch-card h3 { font-size: 0.9375rem; font-weight: 500; margin-bottom: 10px; color: var(--color-text); }
+    .arch-card p { font-size: 14px; font-weight: 300; color: var(--color-text-secondary); line-height: 1.7; }
+
+    /* ============================================
+       TEAM GRID (3-col)
+       ============================================ */
+    .team-section { padding: 120px 20px; background-color: var(--color-bg); }
+    .team-header { max-width: 1728px; margin: 0 auto 80px; }
+    .team-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 48px 40px; max-width: 1728px; margin: 0 auto;
+    }
+    .team-member { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
+    .team-member.visible { opacity: 1; transform: none; }
+    .team-member h3 { font-size: 0.9375rem; font-weight: 500; color: var(--color-text); margin-bottom: 4px; }
+    .team-member .team-title { font-size: 0.75rem; font-weight: 500; color: var(--color-text-secondary); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .team-member p { font-size: 0.8125rem; font-weight: 300; line-height: 1.7; color: var(--color-text-secondary); }
+
+    /* ============================================
+       CTA SECTION
+       ============================================ */
+    .cta-section { padding: 160px 20px; text-align: center; background-color: var(--color-bg); }
+    .cta-section h2 { font-size: 34px; font-weight: 300; letter-spacing: -1.6px; line-height: 100%; margin-bottom: 48px; }
+    @media screen and (min-width: 768px) { .cta-section h2 { font-size: calc(3.75vw - 0.8px); } }
+    @media screen and (min-width: 1728px) { .cta-section h2 { font-size: 64px; } }
+    .cta-button {
+      display: inline-block; font-weight: 400; font-size: 1rem;
+      padding: 12px 36px; border: 1px solid var(--color-accent);
+      border-radius: 2.5rem; color: var(--color-accent);
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+    .cta-button:hover { background: var(--color-accent); color: var(--color-white); }
+
+    /* ============================================
+       FOOTER (Hypersphere-style)
+       ============================================ */
+    .footer {
+      padding: 0 20px; background-color: var(--color-bg-alt);
+      color: var(--color-accent); display: flex; flex-direction: column;
+    }
+    .footer-top {
+      padding: 20px 0; display: grid; grid-template-columns: repeat(12, 1fr);
+      grid-gap: 20px; border-bottom: 1px solid var(--color-accent);
+    }
+    .footer-logo-area {
+      grid-column: 1 / 7; font-weight: 300; font-size: 24px;
+      display: flex; align-items: flex-start; flex-direction: column; gap: 12px;
+    }
+    .footer-logo-area .footer-logo-box { display: flex; align-items: center; gap: 10px; }
+    .footer-logo-area .footer-logo-box svg { width: 28px; height: 28px; }
+    .footer-logo-area .footer-logo-text { font-size: 1rem; font-weight: 500; letter-spacing: 0.15em; }
+    .footer-logo-area p { font-size: 16px; font-weight: 300; line-height: 130%; }
+
+    .footer-newsletter {
+      padding-bottom: 0.25em; display: flex; justify-content: flex-end;
+      align-items: flex-start; flex-direction: column;
+      grid-column: 7 / 13; font-size: 20px; font-weight: 400;
+    }
+    .footer-newsletter p { margin-bottom: 20px; font-size: 20px; line-height: 110%; letter-spacing: -0.4px; }
+
+    .footer-links-grid {
+      min-height: 300px; padding-top: 20px; border-bottom: 1px solid var(--color-accent);
+      display: grid; grid-template-columns: repeat(12, 1fr); grid-gap: 20px;
+    }
+    .footer-links-header { text-transform: uppercase; margin-bottom: 1rem; font-size: 16px; font-weight: 700; }
+    .footer-links-grid a {
+      display: inline-block; position: relative; font-size: 15px; font-weight: 300;
+    }
+    .footer-links-grid a::before {
+      content: ''; position: absolute; display: block; width: 100%; height: 1px;
+      bottom: 0; left: 0; background-color: var(--color-accent);
+      transform: scaleX(0); transition: transform 0.3s ease; transform-origin: top left;
+    }
+    .footer-links-grid a:hover::before { transform: scaleX(1); }
+    .footer-links-grid ul li { margin-bottom: 7px; }
+    .footer-col-info { grid-column: 1 / 3; }
+    .footer-col-resources { grid-column: 4 / 6; }
+    .footer-col-contact { grid-column: 7 / 10; }
+    .footer-col-legal { grid-column: 11 / 13; }
+
+    .footer-meta {
+      height: 60px; display: flex; flex-direction: row; align-items: center;
+      justify-content: space-between; font-size: 12px; font-weight: 300;
+      letter-spacing: -0.24px; text-transform: uppercase;
+    }
+
+    /* ============================================
+       SCROLL REVEAL
+       ============================================ */
+    .reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.8s ease, transform 0.8s ease; }
+    .reveal.visible { opacity: 1; transform: none; }
+    .reveal-delay-1 { transition-delay: 0.1s; }
+    .reveal-delay-2 { transition-delay: 0.2s; }
+    .reveal-delay-3 { transition-delay: 0.3s; }
+    .reveal-delay-4 { transition-delay: 0.4s; }
+    .reveal-delay-5 { transition-delay: 0.5s; }
+
+    /* ============================================
+       RESPONSIVE
+       ============================================ */
+    @media (max-width: 1024px) {
+      .header-cont { top: 10px; left: 10px; right: 10px; max-width: calc(100vw - 20px); }
+      nav.navigation { width: 100%; justify-content: normal; font-size: 14px; }
+      .nav-list { width: 100%; justify-content: space-between; }
+      .nav-list li { width: 100%; }
+      .nav-list li a { height: 34px; padding: 0 12px; font-size: 13px; }
+      .footer-logo-area { grid-column: 1 / 6; font-size: 18px; }
+      .footer-newsletter { grid-column: 7 / 13; }
+    }
+    @media (max-width: 768px) {
+      .hero-title { font-size: 28px; margin: 10px 10px 14px; }
+      .mission-text { grid-column: 1 / 13; font-size: 20px; }
+      .dont-tokenize { grid-column: 1 / 13; }
+      .image-section .mission-text { font-size: 20px; }
+      .capabilities-grid { grid-template-columns: 1fr; }
+      .products-grid { grid-template-columns: 1fr; }
+      .arch-grid { grid-template-columns: 1fr; }
+      .team-grid { grid-template-columns: 1fr; }
+      .flow-box { padding: 32px; }
+      .flow-row { flex-wrap: wrap; gap: 12px; }
+      .flow-node { min-width: 100px; padding: 14px 20px; font-size: 0.8125rem; }
+      .footer { padding: 0 10px; }
+      .footer-top { grid-template-columns: repeat(5, 1fr); }
+      .footer-logo-area { grid-column: 1 / 6; font-size: 6.1vw; }
+      .footer-newsletter { display: none; }
+      .footer-links-grid { grid-template-columns: repeat(6, 1fr); font-size: 12px; letter-spacing: -0.24px; }
+      .footer-col-info { grid-column: 1 / 3; }
+      .footer-col-resources { grid-column: 3 / 5; }
+      .footer-col-contact { grid-column: 5 / 7; }
+      .footer-col-legal { display: none; }
+      .footer-links-header { margin-top: 1rem; margin-bottom: 1rem; font-weight: 500; }
+      .footer-meta { font-size: 10px; line-height: 110%; }
+      .cta-section { padding: 100px 20px; }
+      .hero-content { display: none; }
+      .mobile-header { display: block; }
+      .hero { padding-bottom: 0; }
+    }
+
+    .mobile-header {
+      display: none; padding: 0 10px; color: var(--color-white);
+      position: absolute; bottom: 0; left: 0; right: 0;
+      z-index: 1; padding-bottom: 40px;
+    }
+    .mobile-header h1 { font-size: 28px; font-weight: 400; line-height: 105%; letter-spacing: -0.56px; padding: 0 10px; }
+  </style>
+</head>
+<body>
+
+  <!-- Loader -->
+  <div class="loader" id="loader"></div>
+
+  <!-- Navigation -->
+  <header class="header-cont">
+    <nav class="navigation">
+      <div class="logo-holder">
+        <a href="/">
+          <div class="logo-box">
+            <svg width="36" height="36" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+              <path d="M 25 54 C 25 25, 95 25, 95 54" fill="none" stroke="#1a1a2e" stroke-width="4" stroke-linecap="round"/>
+              <path d="M 25 66 C 25 95, 95 95, 95 66" fill="none" stroke="#1a1a2e" stroke-width="4" stroke-linecap="round"/>
+              <line x1="12" y1="60" x2="108" y2="60" stroke="#1a1a2e" stroke-width="4" stroke-linecap="round"/>
+            </svg>
+          </div>
+        </a>
+      </div>
+      <ul class="nav-list">
+        <li><a href="#thesis">Thesis</a></li>
+        <li><a href="#products">Products</a></li>
+        <li><a href="#how-it-works">How It Works</a></li>
+        <li><a href="#team">Team</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-content">
+      <div class="hero-divider">
+        <div class="line"></div>
+        <span>Tokenization infrastructure</span>
+      </div>
+      <div class="hero-title-cont">
+        <h1 class="hero-title">
+          <span class="word"><span class="word-inner d1">Meridian</span></span>
+          <span class="word"><span class="word-inner d2">is</span></span>
+          <span class="word"><span class="word-inner d3">tokenization</span></span>
+          <span class="word"><span class="word-inner d4">infrastructure</span></span>
+          <span class="word"><span class="word-inner d5">for</span></span>
+          <span class="word"><span class="word-inner d6">productive</span></span>
+          <span class="word"><span class="word-inner d7">assets.</span></span>
+        </h1>
+      </div>
+      <a href="#thesis" class="hero-cta">Explore our Thesis</a>
+    </div>
+    <div class="mobile-header">
+      <h1>Meridian is tokenization infrastructure for productive assets.</h1>
+    </div>
+  </section>
+
+  <!-- Thesis: The World We're Entering -->
+  <section class="mission-section" id="thesis">
+    <div class="mission-grid">
+      <div class="mission-divider reveal" style="grid-column: 1 / 13;">
+        <div class="line"></div>
+        <span>The World We're Entering</span>
+      </div>
+      <div class="mission-text reveal" style="grid-column: 1 / 10;">
+        <p>The post-WWII order was built on a premise: that rules could substitute for power, that institutions could domesticate competition, that economic interdependence would make war irrational. For seventy years, this held. <strong>It is now failing.</strong></p>
+        <p>SWIFT became a weapon. Correspondent banking collapses when jurisdictions turn adversarial. Holding dollars is a political act — not a store of value but a declaration of alignment. The financial infrastructure that once connected the world now fragments it.</p>
+        <p>AI accelerates everything. Intelligence commoditizes, but its physical requirements concentrate: energy, compute, rare materials. Software moats are gone — AI makes them trivially replicable. Capital will rotate to the physical: <strong>agriculture, metals, mining.</strong> The assets that underpin 100% of the real economy but represent a fraction of market indices. This is a historic mispricing, and it will correct.</p>
+        <p><strong>Sovereignty infrastructure is structurally in demand. Few are positioned to deploy into it.</strong></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- What We Tokenize (dark full-bleed) -->
+  <section class="image-section" id="tokenize">
+    <div class="image-section-bg"></div>
+    <div class="image-section-content">
+      <div class="mission-grid">
+        <div class="mission-divider reveal" style="grid-column: 1 / 13;">
+          <div class="line"></div>
+          <span>What We Tokenize</span>
+        </div>
+        <div class="mission-text reveal" style="grid-column: 1 / 10;">
+          We make illiquid productive assets liquid, collateralizable, and accessible to global capital. Metals &amp; commodities. Energy &amp; compute. Mining &amp; critical materials. Sovereign assets. Trade finance. Defense &amp; infrastructure.
+        </div>
+        <div class="dont-tokenize reveal reveal-delay-2">
+          <strong>What we don't tokenize:</strong> Speculation. Assets without real productive capacity. Better rails don't make bad cargo valuable.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Products -->
+  <section class="products-section" id="products">
+    <div class="products-header">
+      <div class="mission-divider reveal">
+        <div class="line" style="background-color: var(--color-accent);"></div>
+        <span>Products</span>
+      </div>
+    </div>
+    <div class="products-grid">
+      <div class="product-card reveal">
+        <div class="product-status live">Launching</div>
+        <h3>mAG · Tokenized Silver</h3>
+        <p>Physically backed, LBMA-vaulted silver. Multi-chain native via LayerZero OFT — Ethereum, Hyperliquid, Solana. Chainlink Proof of Reserves. DeFi lending: borrow stablecoins against your silver position, permissionless, 24/7.</p>
+      </div>
+      <div class="product-card reveal reveal-delay-1">
+        <div class="product-status">Phase 2</div>
+        <h3>mAU · Tokenized Gold</h3>
+        <p>Same infrastructure, different metal. Institutional-grade custody. The world's most trusted store of value, made liquid, fractional, and collateralizable on-chain.</p>
+      </div>
+      <div class="product-card reveal reveal-delay-2">
+        <div class="product-status">Coming Soon</div>
+        <h3>Tokenized Compute</h3>
+        <p>Datacenter capacity and GPU compute as tradeable, collateralizable tokens. The physical layer AI runs on — tokenized for global capital access.</p>
+      </div>
+      <div class="product-card reveal reveal-delay-3">
+        <div class="product-status">In Development</div>
+        <h3>Sovereign Mineral Assets</h3>
+        <p>Partnership with a major West African sovereign institution. Tokenizing national mineral reserves for global capital access. Nigeria first, with a mandate to scale across the continent.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section class="capabilities-section" id="how-it-works">
+    <div class="capabilities-header">
+      <div class="mission-divider reveal">
+        <div class="line" style="background-color: var(--color-accent);"></div>
+        <span>How It Works</span>
+      </div>
+    </div>
+    <div class="capabilities-grid">
+      <div class="capability-card reveal">
+        <span class="capability-num">01</span>
+        <h3>Tokenize</h3>
+        <p>Wrap assets in compliant SPVs. Issue tokens as registered securities with legal claims on underlying cash flows.</p>
+      </div>
+      <div class="capability-card reveal reveal-delay-1">
+        <span class="capability-num">02</span>
+        <h3>Trade</h3>
+        <p>Secondary markets with continuous price discovery. Same-day settlement. Liquidity where none existed before.</p>
+      </div>
+      <div class="capability-card reveal reveal-delay-2">
+        <span class="capability-num">03</span>
+        <h3>Collateralize</h3>
+        <p>Post tokens to lending protocols. Borrow against holdings without selling. The lien is the code.</p>
+      </div>
+      <div class="capability-card reveal reveal-delay-3">
+        <span class="capability-num">04</span>
+        <h3>Stack</h3>
+        <p>Combine tokens across jurisdictions into diversified collateral pools. No correspondent banking chains.</p>
+      </div>
+      <div class="capability-card reveal reveal-delay-4">
+        <span class="capability-num">05</span>
+        <h3>Swap</h3>
+        <p>Atomic swaps between asset classes. Solar for copper. No intermediary, no counterparty risk.</p>
+      </div>
+      <div class="capability-card reveal reveal-delay-5">
+        <span class="capability-num">06</span>
+        <h3>Distribute</h3>
+        <p>Programmatic distributions via smart contract. Cash flows hit, holders receive their share automatically.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Flow Diagram -->
+  <section class="flow-section">
+    <div class="flow-box reveal">
+      <div class="flow-row">
+        <div class="flow-node">Physical Asset</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-node primary">Tokenize</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-node">Global Capital</div>
+      </div>
+      <div class="flow-line"></div>
+      <div class="flow-row">
+        <div class="flow-node">Senior<small>First priority</small></div>
+        <div class="flow-node">Equity<small>Ownership</small></div>
+        <div class="flow-node">Royalty<small>Revenue %</small></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Architecture -->
+  <section class="arch-section">
+    <div class="arch-grid">
+      <div class="arch-card reveal">
+        <h3>LayerZero OFT</h3>
+        <p>Native multi-chain. Burn-and-mint across chains. No wrapped tokens. No bridge pools.</p>
+      </div>
+      <div class="arch-card reveal reveal-delay-1">
+        <h3>Chainlink Proof of Reserves</h3>
+        <p>Real-time on-chain attestation. Total supply always equals verified underlying assets.</p>
+      </div>
+      <div class="arch-card reveal reveal-delay-2">
+        <h3>Fireblocks MPC Custody</h3>
+        <p>Institutional-grade key management. 3/5 multisig. 48-hour timelocked upgrades.</p>
+      </div>
+      <div class="arch-card reveal reveal-delay-3">
+        <h3>Multi-Jurisdiction</h3>
+        <p>SEC, ADGM, and MAS compliant structures. Regulated issuance across jurisdictions.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SMG + Meridian (dark full-bleed) -->
+  <section class="image-section">
+    <div class="image-section-bg"></div>
+    <div class="image-section-content">
+      <div class="mission-grid">
+        <div class="mission-divider reveal" style="grid-column: 1 / 13;">
+          <div class="line"></div>
+          <span>Sovereign Merchant Group + Meridian</span>
+        </div>
+        <div class="mission-text reveal" style="grid-column: 1 / 10;">
+          <p>Meridian is a portfolio company of Sovereign Merchant Group — a merchant group deploying into energy, compute, critical materials, and defense. Infrastructure for the human condition in a fragmenting world.</p>
+          <p>SMG sources and executes. Meridian provides the digital layer. The thesis is shared. The team is shared. Some deals use both. Some use one. The constant is the thesis — sovereignty infrastructure for a fragmenting world.</p>
+        </div>
+        <div style="grid-column: 1 / 13; margin-top: 20px;" class="reveal reveal-delay-2">
+          <a href="https://sovereignmerchantgroup.com" target="_blank" class="mission-cta">sovereignmerchantgroup.com →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Team -->
+  <section class="team-section" id="team">
+    <div class="team-header">
+      <div class="mission-divider reveal">
+        <div class="line" style="background-color: var(--color-accent);"></div>
+        <span>Team</span>
+      </div>
+    </div>
+    <div class="team-grid">
+      <div class="team-member reveal">
+        <h3>Arjun Dhawan</h3>
+        <div class="team-title">Co-founder</div>
+        <p>Northwestern (Economics). Early-stage venture at a global commodities family office. Venture Partner, Andromeda Ventures.</p>
+      </div>
+      <div class="team-member reveal reveal-delay-1">
+        <h3>Jefferson Chen</h3>
+        <div class="team-title">Co-founder</div>
+        <p>Oxford. Founding team of $200M tech-bio fund. Founded Lafiya and Serica Advisory. Government engagement across sub-Saharan Africa.</p>
+      </div>
+      <div class="team-member reveal reveal-delay-2">
+        <h3>Gilad Penn</h3>
+        <div class="team-title">CTO</div>
+        <p>Columbia (CS). Co-founded Streambird (acquired by MoonPay). Smart Contract Lead, Marshall Islands sovereign digital currency. Former CTO of AMBIS.</p>
+      </div>
+      <div class="team-member reveal reveal-delay-3">
+        <h3>Alex Roessner</h3>
+        <p>Northwestern (Economics, Mandarin). Key projects: Keeta Network ($1.7B), Surge Protocol (200K+ devs), PNUT ($2.4B). 100K+ community reach.</p>
+      </div>
+      <div class="team-member reveal reveal-delay-4">
+        <h3>Will Smith</h3>
+        <p>Led operations and portfolio management for a $1B+ multi-family office GP. Co-founded Brightside Capital Partners.</p>
+      </div>
+      <div class="team-member reveal">
+        <h3>Pascal Rathle</h3>
+        <p>Chief of Staff at De Jong Capital. Vice Chair of USA Youth G20/G7 Summits. Council for Inclusive Capitalism.</p>
+      </div>
+      <div class="team-member reveal reveal-delay-1">
+        <h3>Shuhey Wada</h3>
+        <p>Northwestern (Economics). Associate at CriticalPoint Capital (defense and aerospace M&A).</p>
+      </div>
+      <div class="team-member reveal reveal-delay-2">
+        <h3>Jessica Shah</h3>
+        <p>Goldman Sachs. Braze. Global investor network across family offices and institutional capital.</p>
+      </div>
+      <div class="team-member reveal reveal-delay-3">
+        <h3>Danny Han</h3>
+        <p>Portfolio Manager at Mapletree ($3.2B US commercial RE portfolio). Southeast Asian conglomerate operations.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact CTA -->
+  <section class="cta-section" id="contact">
+    <h2 class="reveal">Build with us</h2>
+    <a href="mailto:arjun@meridianrwa.com" class="cta-button reveal reveal-delay-2">Get in touch</a>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-top">
+      <div class="footer-logo-area">
+        <div class="footer-logo-box">
+          <svg width="28" height="28" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+            <path d="M 25 54 C 25 25, 95 25, 95 54" fill="none" stroke="#1a1a2e" stroke-width="5" stroke-linecap="round"/>
+            <path d="M 25 66 C 25 95, 95 95, 95 66" fill="none" stroke="#1a1a2e" stroke-width="5" stroke-linecap="round"/>
+            <line x1="12" y1="60" x2="108" y2="60" stroke="#1a1a2e" stroke-width="5" stroke-linecap="round"/>
+          </svg>
+          <span class="footer-logo-text">MERIDIAN</span>
+        </div>
+        <p>Tokenization infrastructure for productive assets</p>
+      </div>
+      <div class="footer-newsletter">
+        <p>Compliant tokenization, secondary markets, lending infrastructure, and programmatic distributions for productive assets.</p>
+      </div>
+    </div>
+
+    <div class="footer-links-grid">
+      <div class="footer-col-info">
+        <ul>
+          <li><p class="footer-links-header">Info</p></li>
+          <li><a href="#thesis">Thesis</a></li>
+          <li><a href="#products">Products</a></li>
+          <li><a href="#how-it-works">How It Works</a></li>
+          <li><a href="#team">Team</a></li>
+          <li><a href="#contact">Contact</a></li>
+        </ul>
+      </div>
+      <div class="footer-col-resources">
+        <ul>
+          <li><p class="footer-links-header">Products</p></li>
+          <li><a href="#products">mAG · Silver</a></li>
+          <li><a href="#products">mAU · Gold</a></li>
+          <li><a href="#products">Compute</a></li>
+          <li><a href="#products">Sovereign Minerals</a></li>
+        </ul>
+      </div>
+      <div class="footer-col-contact">
+        <ul>
+          <li><p class="footer-links-header">General Inquiries</p></li>
+          <li><a href="mailto:arjun@meridianrwa.com">arjun@meridianrwa.com</a></li>
+        </ul>
+        <ul style="margin-top: 24px;">
+          <li><p class="footer-links-header">Parent Company</p></li>
+          <li><a href="https://sovereignmerchantgroup.com" target="_blank">Sovereign Merchant Group</a></li>
+        </ul>
+      </div>
+      <div class="footer-col-legal">
+        <ul>
+          <li><p class="footer-links-header">Legal</p></li>
+          <li><a href="#">Disclosure</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-meta">
+      <p>MERIDIAN IS TOKENIZATION INFRASTRUCTURE FOR PRODUCTIVE ASSETS.</p>
+      <p>© 2026 Meridian Directive Corporation</p>
+    </div>
+  </footer>
+
+  <!-- JS: loader + scroll reveal -->
+  <script>
+    window.addEventListener('load', () => {
+      setTimeout(() => { document.getElementById('loader').classList.add('loaded'); }, 400);
+    });
+
+    const reveals = document.querySelectorAll('.reveal, .mission-divider, .capability-card, .product-card, .arch-card, .team-member');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) { entry.target.classList.add('visible'); }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+    reveals.forEach(el => observer.observe(el));
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) { target.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+      });
+    });
+  </script>
+
+</body>
+</html>

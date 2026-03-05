@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <!-- Meridian: A meridian line wrapping a globe, with tokenization implied through segmentation -->
+  <defs>
+    <style>
+      .dark { fill: #1a1a2e; }
+      .cut { fill: white; }
+    </style>
+  </defs>
+  <!-- Outer circle - the globe -->
+  <circle cx="200" cy="200" r="170" class="dark"/>
+  <!-- Meridian arc - vertical great circle, offset to create depth -->
+  <path d="M200 30 Q310 200, 200 370" fill="none" stroke="white" stroke-width="14" stroke-linecap="round"/>
+  <!-- Second meridian arc mirrored for the other hemisphere feel -->
+  <path d="M200 30 Q90 200, 200 370" fill="none" stroke="white" stroke-width="4" stroke-linecap="round" opacity="0.3"/>
+  <!-- Horizontal equator line - segmented/tokenized -->
+  <line x1="42" y1="200" x2="120" y2="200" stroke="white" stroke-width="4" stroke-linecap="round"/>
+  <line x1="145" y1="200" x2="180" y2="200" stroke="white" stroke-width="4" stroke-linecap="round"/>
+  <line x1="220" y1="200" x2="255" y2="200" stroke="white" stroke-width="4" stroke-linecap="round"/>
+  <line x1="280" y1="200" x2="358" y2="200" stroke="white" stroke-width="4" stroke-linecap="round"/>
+</svg>

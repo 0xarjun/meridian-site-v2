@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thesis — Meridian</title>
+  <meta name="description" content="The Meridian thesis: tokenization infrastructure for productive assets in a fragmenting world.">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <style>
+    @font-face { font-family: 'Unica77'; src: url('fonts/d5dada0ac482209b-s.p.woff2') format('woff2'); font-weight: 200; font-style: normal; font-display: swap; }
+    @font-face { font-family: 'Unica77'; src: url('fonts/47bad734875a3c19-s.p.woff2') format('woff2'); font-weight: 300; font-style: normal; font-display: swap; }
+    @font-face { font-family: 'Unica77'; src: url('fonts/66250c15a2a1c344-s.p.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
+    @font-face { font-family: 'Unica77'; src: url('fonts/e1d74c7d0918b0fb-s.p.woff2') format('woff2'); font-weight: 500; font-style: normal; font-display: swap; }
+    @font-face { font-family: 'Unica77'; src: url('fonts/de2ef234a4f8c130-s.p.woff2') format('woff2'); font-weight: 600; font-style: normal; font-display: swap; }
+    @font-face { font-family: 'Unica77'; src: url('fonts/9a5efdc67b5dbec6-s.p.woff2') format('woff2'); font-weight: 700; font-style: normal; font-display: swap; }
+
+    :root {
+      --color-bg: #eff4ff;
+      --color-bg-alt: #e2ebff;
+      --color-accent: #1a1a2e;
+      --color-accent-light: rgba(26, 26, 46, 0.15);
+      --color-text: #151515;
+      --color-text-secondary: rgba(26, 26, 46, 0.6);
+      --color-white: #eff4ff;
+      --color-border: rgba(26, 26, 46, 0.12);
+    }
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { font-size: 16px; scroll-behavior: smooth; }
+    body {
+      font-family: 'Unica77', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--color-bg); color: var(--color-text);
+      -webkit-font-smoothing: antialiased; overflow-x: hidden;
+    }
+    ::selection { background: var(--color-accent-light); }
+    a { color: inherit; text-decoration: none; }
+
+    /* Nav */
+    .header-cont {
+      z-index: 10; top: 18px; left: 20px; right: 20px;
+      position: fixed; display: flex; justify-content: space-between;
+      max-width: calc(100vw - 40px);
+    }
+    nav.navigation {
+      width: 100%; line-height: 90%; text-transform: capitalize;
+      display: flex; mix-blend-mode: difference; gap: 0.5rem;
+      font-size: 14px; opacity: 0; transform: translateY(-30%);
+      animation: navSlideIn 0.6s ease forwards; animation-delay: 0.4s;
+    }
+    @keyframes navSlideIn { to { opacity: 1; transform: translateY(0); } }
+    .logo-holder a { display: flex; align-items: center; gap: 0; }
+    .logo-box {
+      height: 48px; width: 48px; display: flex; align-items: center;
+      justify-content: center; background: var(--color-white); border-radius: 4px;
+    }
+    .logo-box svg { width: 36px; height: 36px; }
+    .nav-list { display: flex; padding: 3px; border-radius: 4px; background: var(--color-white); }
+    .nav-list li { border-radius: 4px; color: #000; transition: color 0.3s, background 0.3s; }
+    .nav-list li:hover { color: var(--color-white); background: rgba(0,0,0,0.2); transition: unset; }
+    .nav-list li a { height: 42px; padding: 0 28px; border-radius: 4px; display: flex; align-items: center; justify-content: center; white-space: nowrap; }
+
+    /* Content */
+    .page-content { max-width: 720px; margin: 0 auto; padding: 160px 20px 120px; }
+    .back-link {
+      font-size: 0.875rem; font-weight: 400; color: var(--color-text-secondary);
+      display: inline-block; margin-bottom: 64px; transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--color-text); }
+
+    .section-label {
+      font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.15em;
+      text-transform: uppercase; color: var(--color-text-secondary); margin-bottom: 8px;
+    }
+    .divider-line { width: 100%; height: 1px; background: var(--color-accent); margin-bottom: 48px; }
+
+    h1 { font-size: 36px; font-weight: 400; letter-spacing: -1.2px; line-height: 120%; margin-bottom: 48px; }
+    @media (min-width: 768px) { h1 { font-size: 44px; } }
+
+    h2 { font-size: 24px; font-weight: 400; letter-spacing: -0.8px; margin: 72px 0 32px; color: var(--color-text); }
+
+    .thesis-text p {
+      font-size: 17px; font-weight: 300; line-height: 175%; color: var(--color-text);
+      margin-bottom: 28px; letter-spacing: -0.2px;
+    }
+    .thesis-text p:last-child { margin-bottom: 0; }
+    .thesis-text strong { font-weight: 500; }
+
+    .section-break { width: 40px; height: 1px; background: var(--color-border); margin: 72px 0; }
+
+    /* Footer */
+    .footer-simple {
+      padding: 48px 20px; border-top: 1px solid var(--color-border);
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 12px; font-weight: 300; color: var(--color-text-secondary);
+      text-transform: uppercase; letter-spacing: -0.24px;
+    }
+    .footer-simple a { color: var(--color-text-secondary); transition: color 0.2s; }
+    .footer-simple a:hover { color: var(--color-text); }
+
+    @media (max-width: 768px) {
+      .header-cont { top: 10px; left: 10px; right: 10px; }
+      .nav-list li a { height: 34px; padding: 0 12px; font-size: 13px; }
+      .page-content { padding: 120px 20px 80px; }
+      .footer-simple { flex-direction: column; gap: 12px; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <header class="header-cont">
+    <nav class="navigation">
+      <div class="logo-holder">
+        <a href="/">
+          <div class="logo-box">
+            <svg width="36" height="36" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+              <path d="M 25 54 C 25 25, 95 25, 95 54" fill="none" stroke="#1a1a2e" stroke-width="4" stroke-linecap="round"/>
+              <path d="M 25 66 C 25 95, 95 95, 95 66" fill="none" stroke="#1a1a2e" stroke-width="4" stroke-linecap="round"/>
+              <line x1="12" y1="60" x2="108" y2="60" stroke="#1a1a2e" stroke-width="4" stroke-linecap="round"/>
+            </svg>
+          </div>
+        </a>
+      </div>
+      <ul class="nav-list">
+        <li><a href="/">Home</a></li>
+        <li><a href="/#products">Products</a></li>
+        <li><a href="/#how-it-works">How It Works</a></li>
+        <li><a href="/#team">Team</a></li>
+        <li><a href="/#contact">Contact</a></li>
+        <li><a href="https://sovereignmerchantgroup.com" target="_blank">SMG</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <div class="page-content">
+    <a href="/" class="back-link">← Back to Meridian</a>
+
+    <div class="section-label">Thesis</div>
+    <div class="divider-line"></div>
+
+    <h1>Tokenization infrastructure for a fragmenting world.</h1>
+
+    <div class="thesis-text">
+      <h2>The Macro Shift</h2>
+      <p>The post-WWII financial order assumed economic interdependence would hold — that open capital flows, shared settlement infrastructure, and rules-based trade would bind nations together permanently. For seventy years, this assumption held. It is now being tested at every level.</p>
+      <p>Correspondent banking relationships are narrowing as jurisdictions diverge. Cross-border settlement carries political risk it never carried before. The infrastructure that once connected global capital now fragments it — not through failure, but through deliberate weaponization by competing blocs.</p>
+      <p>For institutions managing real assets — commodities, energy, infrastructure — this creates a structural problem. Trillions in productive capacity sits locked in ownership structures designed for a world of open capital flows. When those flows constrict, the assets don't disappear. They just become harder to finance, harder to trade, and harder to collateralize across borders.</p>
+
+      <h2>The Physical Rotation</h2>
+      <p>AI is accelerating a generational rotation toward physical assets. Intelligence itself commoditizes rapidly — the moats that once protected software businesses are disappearing. But the physical requirements of intelligence are concentrating: energy, compute infrastructure, rare materials, cooling capacity.</p>
+      <p>The assets that underpin 100% of the real economy — agriculture, metals, mining, energy — represent a fraction of investable market indices. Silver alone is in its fifth consecutive year of supply deficit. China has restricted rare earth exports. The US has designated critical minerals for strategic reserves. This is not cyclical. It is structural.</p>
+      <p><strong>The mispricing will correct. The question is who builds the infrastructure to capture it.</strong></p>
+
+      <div class="section-break"></div>
+
+      <h2>What Meridian Builds</h2>
+      <p>Meridian is tokenization infrastructure for productive assets. We make illiquid physical assets — metals, energy, compute, sovereign minerals — liquid, collateralizable, and accessible to global capital on-chain.</p>
+      <p>A tokenized asset is not merely fractional ownership. It is a claim on physical reality that can be traded on secondary markets, posted as collateral to lending protocols, settled same-day across jurisdictions, and programmatically distributed to holders. The underlying asset hasn't changed. The ownership layer has become liquid.</p>
+      <p>Our first product, mAG, is physically backed tokenized silver — LBMA-vaulted, multi-chain native via LayerZero OFT, with Chainlink Proof of Reserves and DeFi lending built in from day one. Gold, compute, and sovereign mineral assets follow.</p>
+
+      <div class="section-break"></div>
+
+      <h2>Sovereign Merchant Group</h2>
+      <p>Meridian is a subsidiary of Sovereign Merchant Group, a merchant group with operations across energy, compute, critical materials, and defense infrastructure globally.</p>
+      <p>SMG provides deal origination, institutional relationships, and the operational infrastructure to source and execute in markets where most capital cannot reach. Meridian provides the tokenization layer — making those assets accessible to global capital through compliant, programmable structures.</p>
+      <p>The thesis is shared. The team is shared. The mandates are complementary: SMG operates in the physical world, Meridian builds the digital layer on top of it.</p>
+      <p>For more on Sovereign Merchant Group: <a href="https://sovereignmerchantgroup.com" target="_blank" style="border-bottom: 1px solid var(--color-border); padding-bottom: 1px;">sovereignmerchantgroup.com</a></p>
+    </div>
+  </div>
+
+  <footer class="footer-simple">
+    <span>© 2026 Meridian Directive Corporation</span>
+    <a href="mailto:info@meridianrwa.com">info@meridianrwa.com</a>
+  </footer>
+
+</body>
+</html>
